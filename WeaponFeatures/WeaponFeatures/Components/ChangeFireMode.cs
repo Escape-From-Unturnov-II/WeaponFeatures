@@ -22,21 +22,18 @@ namespace WeaponFeatures.Components
 
         void Start()
         {
-            Logger.Log("Line 25");
             _lastFireMode = 0;
             PluginChangeFireMode = false;
-            Logger.Log("Line 28");
             if (Player == null)
             {
                 Player.gameObject.TryRemoveComponent<ChangeFireMode>();
                 return;
             }
-            Logger.Log("Line 34");
+
             if (Player.equipment.itemID != 0)
             {
                 _lastFireMode = Player.equipment.state[11];
             }
-            Logger.Log("Line 39");
         }
 
         void Update()

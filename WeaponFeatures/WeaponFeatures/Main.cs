@@ -1,4 +1,6 @@
-﻿using Rocket.API.Extensions;
+﻿using System.Linq;
+using HarmonyLib;
+using Rocket.API.Extensions;
 using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Player;
@@ -10,12 +12,16 @@ namespace WeaponFeatures
 {
     public class Main : RocketPlugin<Configuration>
     {
+        public Harmony Harmony { get; private set; }
         public static Main Instance { get; set; }
 
         protected override void Load()
         {
             Instance = this;
-            
+
+            Harmony = new Harmony("unturnov.weaponfeatures");
+            Harmony.PatchAll();
+
             U.Events.OnPlayerConnected += OnPlayerConnected;
             U.Events.OnPlayerDisconnected += OnPlayerLeft;
         }
@@ -77,13 +83,15 @@ namespace WeaponFeatures
         private static void CheckFireMode(Player player)
         {
             if (player.equipment.asset is not ItemGunAsset) return;
+            if(Instance.Configuration.Instance.WeaponLengths.All(x => x.WeaponID != player.equipment.asset.id)) return;
+
             var comp2 = player.gameObject.GetComponent<ChangeFireMode>();
+            var weapon = Instance.Configuration.Instance.WeaponLengths.First(x => x.WeaponID == player.equipment.asset.id);
 
             var ray = new Ray(player.look.aim.position, player.look.aim.forward);
-
-            if (!Physics.Raycast(ray, out _, 1f, RayMasks.BLOCK_COLLISION))
+            
+            if (!Physics.Raycast(ray, out _, weapon.LengthOfWeapon, RayMasks.BLOCK_COLLISION))
             {
-
                 var exists = player.equipment.gameObject.GetComponent<FiremodeBlocker>();
                 if (exists == null) return;
                 
@@ -93,6 +101,7 @@ namespace WeaponFeatures
                 player.equipment.gameObject.TryRemoveComponent<FiremodeBlocker>();
                 return;
             }
+
             if (player.equipment.itemID == 0) return;
             {
                 var current_fire_mode = player.equipment.state[11];
@@ -111,6 +120,8 @@ namespace WeaponFeatures
         protected override void Unload()
         {
             Instance = null;
+
+            Harmony.UnpatchAll("unturnov.weaponfeatures");
 
             U.Events.OnPlayerConnected -= OnPlayerConnected;
             U.Events.OnPlayerDisconnected -= OnPlayerLeft;

@@ -78,6 +78,7 @@
     <Compile Include="Components\FiremodeBlocker.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="Patches\AimPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
